@@ -1,3 +1,12 @@
+qsq@
+
+cxw
+≈©
+
+©
+
+
+
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -15,7 +24,6 @@
     <groupId>com.heroku</groupId>
     <artifactId>java-getting-started</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>war</packaging>
 
     <properties>
         <java.version>17</java.version>
@@ -29,7 +37,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-           <scope>provided</scope> 
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -50,20 +57,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-             <configuration>
-                <packaging>war</packaging>
-            </configuration>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.3.2</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
-
         </plugins>
     </build>
 </project>

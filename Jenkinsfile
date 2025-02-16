@@ -41,7 +41,7 @@ pipeline {
             groupId: 'com.example',
             version: '1.0.0-SNAPSHOT',
             artifacts: [
-                [artifactId: 'java-getting-started', file: 'target/java-getting-started-1.0.0-SNAPSHOT.jar', classifier: '', type: 'jar']
+                [artifactId: 'java-getting-started', file: 'target/java-getting-started-1.0.0-SNAPSHOT.war', classifier: '', type: 'war']
             ]
         )
 
