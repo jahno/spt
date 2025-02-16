@@ -76,14 +76,6 @@ pipeline {
                         echo "Chemin du fichier: /var/lib/jenkins/workspace/test/$warFile"
 
                         echo "copie manuel"
-                    
-if [ -f "/var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war" ]; then
-    echo "Fichier trouvé, lancement du transfert..."
-    scp -P 22 /var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war Administrator@54.90.149.12:'C:/Users/Administrator/Desktop/'
-else
-    echo "ERREUR: Fichier .war introuvable !"
-    exit 1
-fi
 
                     """
 
@@ -96,6 +88,16 @@ fi
                          allowAnyHosts: true,
                         port: 22
                     ], from: warFile, into: "C:\\Users\\Administrator\\Desktop\\${warFile}"
+
+                    sshPut remote: [
+    name: 'WindowsServer',
+    host: WINDOWS_SERVER,
+    user: 'Administrator',
+    password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
+    allowAnyHosts: true,
+    port: 22
+], from: "/var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war", into: "C:\\Temp\\java-getting-started-1.0.0-SNAPSHOT.war"
+
 
                     sshCommand remote: [
                                 name: 'WindowsServer',
