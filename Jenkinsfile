@@ -62,6 +62,7 @@ pipeline {
 
                     // Copie test sur le bureau de l'admin
                     sshPut remote: [
+			name:'WindowsServer',
                         host: WINDOWS_SERVER,
                         credentialsId: 'windows-ssh',
                         port: 22
