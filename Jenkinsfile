@@ -64,6 +64,7 @@ pipeline {
                     sshPut remote: [
 			name:'WindowsServer',
                         host: WINDOWS_SERVER,
+  			user: 'Administrator',
                         credentialsId: 'windows-ssh',
                         port: 22
                     ], from: warFile, into: "C:\\Users\\Administrator\\Desktop\\${warFile}"
