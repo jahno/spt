@@ -21,6 +21,14 @@ pipeline {
             }
         }
 
+   // stage('Code Analysis with SonarQube') {
+        //     steps {
+        //         withSonarQubeEnv('SonarQube') {
+        //             sh 'mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN'
+        //         }
+        //     }
+        // }
+        
         stage('Upload to Nexus') {
             steps {
                 nexusArtifactUploader(
@@ -45,7 +53,7 @@ pipeline {
 
 
                        //  Récupérer la dernière version du .war
-                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: 'nexus-credential', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                         sh """
                             latest_war=\$(curl -s -u "\$NEXUS_USER:\$NEXUS_PASS" "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" | grep -oP '(?<=<value>).*?(?=</value>)' | sort -V | tail -1)
                             echo "Dernière version détectée: \$latest_war"
