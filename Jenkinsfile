@@ -65,7 +65,7 @@ pipeline {
 			name:'WindowsServer',
                         host: WINDOWS_SERVER,
   			user: 'Administrator',
-                        credentialsId: 'windows-ssh',
+                        password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
   		        allowAnyHosts: true,
                         port: 22
                     ], from: warFile, into: "C:\\Users\\Administrator\\Desktop\\${warFile}"
