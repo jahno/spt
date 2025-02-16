@@ -43,16 +43,21 @@ pipeline {
                 script {
                     def warFile = 'java-getting-started-1.0.0-SNAPSHOT.war'
 
-                    // Récupérer la dernière version du .war
-                    sh """
-                        latest_war=\$(curl -s -u admin:admin "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" | grep -oP '(?<=<value>).*?(?=</value>)' | sort -V | tail -1)
-                        echo "Dernière version détectée: \$latest_war"
 
-                        curl -u admin:admin -o ${warFile} "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/java-getting-started-\$latest_war.war"
+                       //  Récupérer la dernière version du .war
+                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                        sh """
+                            latest_war=\$(curl -s -u "\$NEXUS_USER:\$NEXUS_PASS" "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" | grep -oP '(?<=<value>).*?(?=</value>)' | sort -V | tail -1)
+                            echo "Dernière version détectée: \$latest_war"
 
-                        echo "Fichier téléchargé, vérification de la taille:"
-                        ls -lh ${warFile}
-                    """
+                            curl -u "\$NEXUS_USER:\$NEXUS_PASS" -o ${warFile} "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/java-getting-started-\$latest_war.war"
+
+                            echo "Fichier téléchargé, vérification de la taille:"
+                            ls -lh ${warFile}
+                        """
+                    }
+
+                    
 
                     // 🔒 Utilisation sécurisée du mot de passe depuis les credentials
                     withCredentials([string(credentialsId: 'windows-ssh-password', variable: 'SSH_PASSWORD')]) {
