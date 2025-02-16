@@ -96,7 +96,7 @@ pipeline {
     password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
     allowAnyHosts: true,
     port: 22
-], from: "/var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war", into: "C:\\Temp\\java-getting-started-1.0.0-SNAPSHOT.war"
+], from: "/var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war", into: "C:\\Users\\Administrator\\Desktop\\java-getting-started-1.0.0-SNAPSHOT.war"
 
 
                     sshCommand remote: [
