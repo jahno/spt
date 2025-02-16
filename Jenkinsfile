@@ -32,7 +32,7 @@ pipeline {
 
         stage('Upload to Nexus') {
             steps {
-                  nexusArtifactUploader(
+                    nexusArtifactUploader(
             nexusVersion: 'nexus3',
             protocol: 'http',
             nexusUrl: '52.23.170.163:8081',
@@ -41,7 +41,7 @@ pipeline {
             groupId: 'com.example',
             version: '1.0.0-SNAPSHOT',
             artifacts: [
-                [file: 'target/java-getting-started-1.0.0-SNAPSHOT.jar', classifier: '', type: 'jar']
+                [artifactId: 'java-getting-started', file: 'target/java-getting-started-1.0.0-SNAPSHOT.jar', classifier: '', type: 'jar']
             ]
         )
 
