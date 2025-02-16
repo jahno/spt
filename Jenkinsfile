@@ -72,6 +72,19 @@ pipeline {
 
                         echo "mon chemin"
                         pwd
+
+                        echo "Chemin du fichier: /var/lib/jenkins/workspace/test/$latest_war"
+
+                        echo "copie manuel"
+                    
+if [ -f "/var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war" ]; then
+    echo "Fichier trouvé, lancement du transfert..."
+    scp -P 22 /var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war Administrator@54.90.149.12:'C:/Users/Administrator/Desktop/'
+else
+    echo "ERREUR: Fichier .war introuvable !"
+    exit 1
+fi
+
                     """
 
                     // Copie test sur le bureau de l'admin
