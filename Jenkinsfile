@@ -52,21 +52,24 @@ pipeline {
         stage('Deploy to Windows') {
             steps {
                 script {
-                    def warFile = 'java-getting-started-1.0.0-SNAPSHOT.war'
+                     def warFile = 'java-getting-started-1.0.0-SNAPSHOT.war'
 
                     // Télécharger le .war depuis Nexus
+                     // Récupérer la dernière version du .war
                     sh """
+                        latest_war=\$(curl -s -u admin:admin "http://52.23.170.163:8081/repository/maven-repo/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" | grep -oP '(?<=<value>).*?(?=</value>)' | tail -1)
+                        echo "Dernière version détectée: \$latest_war"
+
                         curl -u admin:admin -o ${warFile} \
-                        http://52.23.170.163:8081/repository/maven-repo/com/example/java-getting-started/1.0.0-SNAPSHOT/${warFile}
+                        http://52.23.170.163:8081/repository/maven-repo/com/example/java-getting-started/1.0.0-SNAPSHOT/java-getting-started-\$latest_war.war
                     """
 
                     // Copie test sur le bureau de l'admin
                     sshPut remote: [
-			name:'WindowsServer',
+                        name:'WindowsServer',
                         host: WINDOWS_SERVER,
-  			user: 'Administrator',
+                        user: 'Administrator',
                         password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
-  		        allowAnyHosts: true,
                         port: 22
                     ], from: warFile, into: "C:\\Users\\Administrator\\Desktop\\${warFile}"
 
