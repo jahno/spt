@@ -4,10 +4,7 @@ pipeline {
     environment {
         NEXUS_URL = "http://52.23.170.163:8081/repository/maven-repo/"
         NEXUS_CREDENTIALS_ID = "nexus-credential"
-        SONARQUBE_URL = "http://<IP_SONARQUBE>:9000"
-        SONARQUBE_TOKEN = "<TOKEN_SONARQUBE>"
-        WINDOWS_SERVER = "54.90.149.12"  
-        SSH_CREDENTIALS_ID = "windows-ssh" 
+        WINDOWS_SERVER = "54.90.149.12"
     }
 
     stages {
@@ -23,14 +20,6 @@ pipeline {
                 sh 'mvn clean package'
             }
         }
-
-        // stage('Code Analysis with SonarQube') {
-        //     steps {
-        //         withSonarQubeEnv('SonarQube') {
-        //             sh 'mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN'
-        //         }
-        //     }
-        // }
 
         stage('Upload to Nexus') {
             steps {
@@ -52,83 +41,51 @@ pipeline {
         stage('Deploy to Windows') {
             steps {
                 script {
-                     def warFile = 'java-getting-started-1.0.0-SNAPSHOT.war'
+                    def warFile = 'java-getting-started-1.0.0-SNAPSHOT.war'
 
-                    // Télécharger le .war depuis Nexus
-                     // Récupérer la dernière version du .war
+                    // Récupérer la dernière version du .war
                     sh """
-                        echo "Récupération de la dernière version du .war..."
-                        curl -s -u admin:admin "http://52.23.170.163:8081/repository/maven-repo/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" > metadata.xml
-                        cat metadata.xml | grep '<value>'
-                        
-                        latest_war=\$(cat metadata.xml | grep -oP '(?<=<value>).*?(?=</value>)' | sort -V | tail -1)
+                        latest_war=\$(curl -s -u admin:admin "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" | grep -oP '(?<=<value>).*?(?=</value>)' | sort -V | tail -1)
                         echo "Dernière version détectée: \$latest_war"
 
-                        curl -u admin:admin -o ${warFile} \
-                        http://52.23.170.163:8081/repository/maven-repo/com/example/java-getting-started/1.0.0-SNAPSHOT/java-getting-started-\$latest_war.war
+                        curl -u admin:admin -o ${warFile} "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/java-getting-started-\$latest_war.war"
 
                         echo "Fichier téléchargé, vérification de la taille:"
                         ls -lh ${warFile}
-
-                        echo "mon chemin"
-                        pwd
-
-                        echo "Chemin du fichier: /var/lib/jenkins/workspace/test/$warFile"
-
-                        echo "copie manuel"> t.txt
-    
- sshpass -p 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6' scp -P 22 /var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war \
-    Administrator@54.90.149.12:"C:/Users/Administrator/Desktop/"
-
                     """
 
-                    // Copie test sur le bureau de l'admin
-                    sshPut remote: [
-                        name:'WindowsServer',
+                    // 🔒 Utilisation sécurisée du mot de passe depuis les credentials
+                    withCredentials([string(credentialsId: 'windows-ssh-password', variable: 'SSH_PASSWORD')]) {
+                        sh """
+                            sshpass -p "$SSH_PASSWORD" scp -P 22 ${warFile} Administrator@$WINDOWS_SERVER:"C:/Users/Administrator/Desktop/"
+                        """
+
+
+                           // Vérifier si le fichier est bien présent sur Windows
+                    sshCommand remote: [
+                        name: 'WindowsServer',
                         host: WINDOWS_SERVER,
                         user: 'Administrator',
-                        password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
-                         allowAnyHosts: true,
+                        password: SSH_PASSWORD,
+                        allowAnyHosts: true,
                         port: 22
-                    ], from: warFile, into: "C:\\Users\\Administrator\\Desktop\\${warFile}"
-
-                    sshPut remote: [
-    name: 'WindowsServer',
-    host: WINDOWS_SERVER,
-    user: 'Administrator',
-    password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
-    allowAnyHosts: true,
-    port: 22
-], from: "/var/lib/jenkins/workspace/test/t.txt", into: "C:\\Users\\Administrator\\Desktop\\t.txt"
+                     ], command: "dir C:\\Users\\Administrator\\Desktop\\"
 
 
-                    sshCommand remote: [
-                                name: 'WindowsServer',
-                                host: WINDOWS_SERVER,
-                                user: 'Administrator',
-                                password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
-                                allowAnyHosts: true,
-                                port: 22
-                            ], command: "dir C:\\Users\\Administrator\\Desktop\\"
-                
- 
-
-
-                    // Copier le .war sur le serveur Windows via SSH
-                    // sshPut remote: [
-                    //     host: WINDOWS_SERVER,
-                    //     credentialsId: 'windows-ssh',
-                    //     port: 22
-                    // ], from: warFile, into: "C:\\Tomcat\\webapps\\${warFile}"
-
-                    // Redémarrer Tomcat via SSH
+                          // Redémarrer Tomcat via SSH
                     // sshCommand remote: [
                     //     host: WINDOWS_SERVER,
                     //     credentialsId: 'windows-ssh',
                     //     port: 22
                     // ], command: "C:\\Tomcat\\bin\\shutdown.bat && C:\\Tomcat\\bin\\startup.bat"
+                   
+                   
+                }
+
+                 
                 }
             }
-        }  
-    }  
-} 
+        }
+    }
+}
+
