@@ -76,6 +76,9 @@ pipeline {
                         echo "Chemin du fichier: /var/lib/jenkins/workspace/test/$warFile"
 
                         echo "copie manuel"> t.txt
+    
+ sshpass -p 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6' scp -P 22 /var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war \
+    Administrator@54.90.149.12:"C:/Users/Administrator/Desktop/"
 
                     """
 
