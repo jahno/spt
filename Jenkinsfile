@@ -5,32 +5,28 @@ pipeline {
         NEXUS_URL = "http://52.23.170.163:8081/repository/maven-repo/"
         NEXUS_CREDENTIALS_ID = "nexus-credential"
         WINDOWS_SERVER = "54.90.149.12"
+        WAR_FILE = "java-getting-started-1.0.0-SNAPSHOT.war"
+        WINDOWS_DEST = "C:/Users/Administrator/Desktop/${WAR_FILE}"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo "Checking out code from SCM..."
+                echo "🔍 Vérification du code source..."
                 checkout scm
             }
         }
 
         stage('Build & Test') {
             steps {
+                echo "🏗️ Compilation du projet..."
                 sh 'mvn clean package'
             }
         }
 
-   // stage('Code Analysis with SonarQube') {
-        //     steps {
-        //         withSonarQubeEnv('SonarQube') {
-        //             sh 'mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN'
-        //         }
-        //     }
-        // }
-        
         stage('Upload to Nexus') {
             steps {
+                echo "🚀 Upload du WAR vers Nexus..."
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
                     protocol: 'http',
@@ -40,7 +36,7 @@ pipeline {
                     groupId: 'com.example',
                     version: '1.0.0-SNAPSHOT',
                     artifacts: [
-                        [artifactId: 'java-getting-started', file: 'target/java-getting-started-1.0.0-SNAPSHOT.war', classifier: '', type: 'war']
+                        [artifactId: 'java-getting-started', file: "target/${WAR_FILE}", classifier: '', type: 'war']
                     ]
                 )
             }
@@ -49,53 +45,55 @@ pipeline {
         stage('Deploy to Windows') {
             steps {
                 script {
-                    def warFile = 'java-getting-started-1.0.0-SNAPSHOT.war'
+                    echo "🚀 Déploiement du WAR sur Windows..."
 
-
-                       //  Récupérer la dernière version du .war
+                    // 🔒 Utilisation sécurisée des credentials Nexus
                     withCredentials([usernamePassword(credentialsId: 'nexus-credential', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                        echo "🔍 Récupération de la dernière version du WAR depuis Nexus..."
                         sh """
                             latest_war=\$(curl -s -u "\$NEXUS_USER:\$NEXUS_PASS" "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" | grep -oP '(?<=<value>).*?(?=</value>)' | sort -V | tail -1)
-                            echo "Dernière version détectée: \$latest_war"
+                            echo "✅ Dernière version détectée: \$latest_war"
 
-                            curl -u "\$NEXUS_USER:\$NEXUS_PASS" -o ${warFile} "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/java-getting-started-\$latest_war.war"
+                            if [ -z "\$latest_war" ]; then
+                                echo "❌ ERREUR: Impossible de détecter la version du WAR !" && exit 1
+                            fi
 
-                            echo "Fichier téléchargé, vérification de la taille:"
-                            ls -lh ${warFile}
+                            curl -u "\$NEXUS_USER:\$NEXUS_PASS" -o "\${env.WORKSPACE}/${WAR_FILE}" "$NEXUS_URL/com/example/java-getting-started/1.0.0-SNAPSHOT/java-getting-started-\$latest_war.war"
+
+                            echo "✅ Fichier téléchargé :"
+                            ls -lh "\${env.WORKSPACE}/${WAR_FILE}"
                         """
                     }
 
-                    
-
-                    // 🔒 Utilisation sécurisée du mot de passe depuis les credentials
+                    // 🔒 Utilisation sécurisée du mot de passe Windows SSH
                     withCredentials([string(credentialsId: 'windows-ssh-password', variable: 'SSH_PASSWORD')]) {
+                        echo "📤 Transfert du fichier vers Windows..."
                         sh """
-                            sshpass -p "$SSH_PASSWORD" scp -P 22 ${warFile} Administrator@$WINDOWS_SERVER:"C:/Users/Administrator/Desktop/"
+                            sshpass -p "$SSH_PASSWORD" scp -P 22 "\${env.WORKSPACE}/${WAR_FILE}" Administrator@$WINDOWS_SERVER:"${WINDOWS_DEST}"
                         """
 
+                        // Vérifier que le fichier est bien présent sur Windows
+                        echo "📂 Vérification de la présence du fichier sur Windows..."
+                        sshCommand remote: [
+                            name: 'WindowsServer',
+                            host: WINDOWS_SERVER,
+                            user: 'Administrator',
+                            password: SSH_PASSWORD,
+                            allowAnyHosts: true,
+                            port: 22
+                        ], command: "dir C:\\Users\\Administrator\\Desktop\\"
 
-                           // Vérifier si le fichier est bien présent sur Windows
-                    sshCommand remote: [
-                        name: 'WindowsServer',
-                        host: WINDOWS_SERVER,
-                        user: 'Administrator',
-                        password: SSH_PASSWORD,
-                        allowAnyHosts: true,
-                        port: 22
-                     ], command: "dir C:\\Users\\Administrator\\Desktop\\"
-
-
-                          // Redémarrer Tomcat via SSH
-                    // sshCommand remote: [
-                    //     host: WINDOWS_SERVER,
-                    //     credentialsId: 'windows-ssh',
-                    //     port: 22
-                    // ], command: "C:\\Tomcat\\bin\\shutdown.bat && C:\\Tomcat\\bin\\startup.bat"
-                   
-                   
-                }
-
-                 
+                        // Redémarrer Tomcat après le déploiement (optionnel)
+                        // echo "🔄 Redémarrage de Tomcat..."
+                        // sshCommand remote: [
+                        //     name: 'WindowsServer',
+                        //     host: WINDOWS_SERVER,
+                        //     user: 'Administrator',
+                        //     password: SSH_PASSWORD,
+                        //     allowAnyHosts: true,
+                        //     port: 22
+                        // ], command: "C:\\Tomcat\\bin\\shutdown.bat && C:\\Tomcat\\bin\\startup.bat"
+                    }
                 }
             }
         }
