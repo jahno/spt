@@ -32,18 +32,20 @@ pipeline {
 
         stage('Upload to Nexus') {
             steps {
-                nexusArtifactUploader(
-    nexusVersion: 'nexus3',
-    protocol: 'http',
-    nexusUrl: '52.23.170.163:8081',
-    repository: 'maven-releases',
-    credentialsId: NEXUS_CREDENTIALS_ID,
-    groupId: 'com.example',
-    version: '1.0.0',
-    artifacts: [
-        [artifactPath: 'target/petclinic.war', type: 'war']
-    ]
-)
+                        nexusArtifactUploader(
+            nexusVersion: 'nexus3',
+            protocol: 'http',
+            nexusUrl: '52.23.170.163:8081',
+            repository: 'maven-releases',
+            credentialsId: NEXUS_CREDENTIALS_ID,
+            groupId: 'com.example',
+            artifactId: 'java-getting-started',
+            version: '1.0.0-SNAPSHOT',
+            packaging: 'jar',
+            artifacts: [
+                [classifier: '', file: 'target/java-getting-started-1.0.0-SNAPSHOT.jar', type: 'jar']
+            ]
+        )
 
             }
         }
