@@ -57,11 +57,18 @@ pipeline {
                     // Télécharger le .war depuis Nexus
                      // Récupérer la dernière version du .war
                     sh """
-                        latest_war=\$(curl -s -u admin:admin "http://52.23.170.163:8081/repository/maven-repo/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" | grep -oP '(?<=<value>).*?(?=</value>)' | tail -1)
+                        echo "Récupération de la dernière version du .war..."
+                        curl -s -u admin:admin "http://52.23.170.163:8081/repository/maven-repo/com/example/java-getting-started/1.0.0-SNAPSHOT/maven-metadata.xml" > metadata.xml
+                        cat metadata.xml | grep '<value>'
+                        
+                        latest_war=\$(cat metadata.xml | grep -oP '(?<=<value>).*?(?=</value>)' | sort -V | tail -1)
                         echo "Dernière version détectée: \$latest_war"
 
                         curl -u admin:admin -o ${warFile} \
                         http://52.23.170.163:8081/repository/maven-repo/com/example/java-getting-started/1.0.0-SNAPSHOT/java-getting-started-\$latest_war.war
+
+                        echo "Fichier téléchargé, vérification de la taille:"
+                        ls -lh ${warFile}
                     """
 
                     // Copie test sur le bureau de l'admin
@@ -70,7 +77,7 @@ pipeline {
                         host: WINDOWS_SERVER,
                         user: 'Administrator',
                         password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
-                        allowAnyHosts: true,
+                         allowAnyHosts: true,
                         port: 22
                     ], from: warFile, into: "C:\\Users\\Administrator\\Desktop\\${warFile}"
 
