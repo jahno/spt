@@ -69,6 +69,9 @@ pipeline {
 
                         echo "Fichier téléchargé, vérification de la taille:"
                         ls -lh ${warFile}
+
+                        echo "mon chemin"
+                        pwd
                     """
 
                     // Copie test sur le bureau de l'admin
