@@ -92,6 +92,16 @@ pipeline {
                                 allowAnyHosts: true,
                                 port: 22
                             ], command: "dir C:\\Users\\Administrator\\Desktop\\"
+                
+ sshCommand remote: [
+    name: 'WindowsServer',
+    host: WINDOWS_SERVER,
+    user: 'Administrator',
+    password: 'UL64DOE3YK5vc@8387lRgd9xS%k%8bP6',
+     allowAnyHosts: true,
+    port: 22
+], command: "scp -P 22 /var/lib/jenkins/workspace/test/java-getting-started-1.0.0-SNAPSHOT.war Administrator@54.90.149.12:'C:/Users/Administrator/Desktop/'"
+
 
 
                     // Copier le .war sur le serveur Windows via SSH
